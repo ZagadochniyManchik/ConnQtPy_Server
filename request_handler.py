@@ -2,6 +2,7 @@ from Database.database import *
 from Database.database_config import *
 from Database.User import *
 from decoder import *
+from CFIE import *
 import pickle
 
 garbage = []
@@ -44,8 +45,12 @@ class Handler:
         items = user_account.__dict__
         for key, value in data.items():
             items[key] = value
-        items['ip'] = addr
+        items['ip'] = addr[0]
         del items['id']
-        print(items)
-        print(f"{addr}: {self.database.insert(name='user', subject_values=items)}")
-        return '<SUCCESS> New user added to database'
+        static_status = check_all_for_reg(login=items.get('login'), password=items.get('password'),
+                                          email=items.get('email'), db=self.database)
+        if static_status != '<SUCCESS>':
+            return static_status
+        print(f"({addr[0]}:{addr[1]}): {self.database.insert(name='user', subject_values=items)}")
+        print(f'<SUCCESS> New user added to database')
+        return '<SUCCESS>'

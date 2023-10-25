@@ -5,6 +5,7 @@ import decoder
 from server_config import *
 from request_handler import *
 from dataparser import *
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 # func to run main code
@@ -41,12 +42,12 @@ class Server:
         print(f"Server bind to ({(self.__host, self.__port)})")
         self.__server.bind((self.__host, self.__port))
 
+        print(f'\n{"-"*80}\nServer listen for connection\n{"-"*80}\n')
+
     # server start to listen and accept connections
     def run(self) -> None:
 
         self.__server.listen()
-
-        print(f'\n{"-"*80}\nServer listen for connection\n{"-"*80}\n')
 
         self.__conn, self.__addr = self.__server.accept()
         thr = Connection(self.__conn, self.__addr)
@@ -57,12 +58,12 @@ class Server:
 class Connection(threading.Thread):
 
     def __init__(self, conn, addr):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name=addr[0])
 
         self.__conn = conn
         self.__addr = addr
 
-        print(f'Connection with {self.__addr} open')
+        print(f'\nConnection with {self.__addr} open\n')
         self.handler = Handler()
 
     # Running function after creating object of self class
@@ -74,20 +75,25 @@ class Connection(threading.Thread):
             try:
                 while True:
                     data = self.__conn.recv(1024)
-                    if data == b'':
+                    try:
+                        data = parser(data)
+                    except IndexError:
                         continue
-                    data = parser(data)
                     print(f'{time_now()}: {self.__addr} -> {data[0]}')
-                    status = self.handler.call_method(data, addr=self.__addr[0])
+                    status = self.handler.call_method(data, addr=self.__addr)
                     if status == '<CLOSE-CONNECTION>':
                         break
-                    print(f'{status} for addr[{self.__addr}]')
+                    print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
+                    self.send(status)
             except ConnectionResetError:
                 print(f'Connection with {self.__addr} closed with ConnectionResetError')
         except ValueError as error_arg:
             print(f'Connection with {self.__addr} closed with Error:\n{error_arg}')
         finally:
             print(f'{status}\nConnection with {self.__addr} closed')
+
+    def send(self, data):
+        self.__conn.send(pencode(data))
 
 
 if __name__ == '__main__':

@@ -134,7 +134,10 @@ class Database:
     # insert a row in table
     def insert(self, name: str = 'user', subject_values=None) -> str:
         table_elements = db_table_elements.get(name)
-        table_elements.remove('id')
+        try:
+            table_elements.remove('id')
+        except ValueError:
+            pass
 
         if subject_values is None:
             subject_values = {
@@ -171,19 +174,19 @@ if __name__ == '__main__':
     db = Database()
     print(f"Database live status is {db.is_alive}")
     print(db.connect())
-    print(*db.select(table_name='user'), sep='\n')
-    print(db.update(table_name='user', subject='login', subject_value="Profile9", id='83243'))
-    print(*db.select(table_name='user', id='83243'), sep='\n')
+    # print(*db.select(table_name='user'), sep='\n')
+    # print(db.update(table_name='user', subject='login', subject_value="Profile9", id='83243'))
+    print(*db.select(table_name='user', subject='login'), sep='\n')
     # print(db.create())
     # print(db.create(status='database', name='dbexample'))
-    print(db.insert(subject_values={
-        'id': '516782',
-        'ip': '192.168.0.32',
-        'login': 'Profile99',
-        'password': 'password123',
-        'email': 'testemail2021@gmail.ru'
-    }))
-    print(db.delete(table_name='user', id='516782'))
+    # print(db.insert(subject_values={
+    #     'id': '516782',
+    #     'ip': '192.168.0.32',
+    #     'login': 'Profile99',
+    #     'password': 'password123',
+    #     'email': 'testemail2021@gmail.ru'
+    # }))
+    # print(db.delete(table_name='user', id='516782'))
     print(f"{'-'*60}")
     db_code_status = 'successful'
     print(db_code_status)
