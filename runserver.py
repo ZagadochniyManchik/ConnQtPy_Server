@@ -21,6 +21,7 @@ def run_server():
             print(f'\n{time_now()}\n!!!WARNING\n{error_arg}\nWARNING!!!\n')
 
 
+# Server object with standard values to run server and his work with threads
 class Server:
 
     def __init__(self):
@@ -55,8 +56,10 @@ class Server:
         thr.start()
 
 
+# Thread for every client that connect to server and work with him
 class Connection(threading.Thread):
 
+    # creating thread and saving connection and addr data
     def __init__(self, conn, addr):
         threading.Thread.__init__(self, name=addr[0])
 
@@ -66,7 +69,7 @@ class Connection(threading.Thread):
         print(f'\nConnection with {self.__addr} open\n')
         self.handler = Handler()
 
-    # Running function after creating object of self class
+    # Running function after creating object of class
     def run(self):
 
         status = 'None'
@@ -92,6 +95,7 @@ class Connection(threading.Thread):
         finally:
             print(f'{status}\nConnection with {self.__addr} closed')
 
+    # sends data to clients
     def send(self, data):
         self.__conn.send(pencode(data))
 

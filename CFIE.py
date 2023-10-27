@@ -62,6 +62,7 @@ def check_email(email: str) -> str:
     return '<SUCCESS>'
 
 
+# returns user data if exist
 def find_login(login: str, db) -> str:
     try:
         return db.select(table_name='user', id=login, criterion='login')[0]
