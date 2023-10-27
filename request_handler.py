@@ -4,6 +4,7 @@ from Database.User import *
 from decoder import *
 from CFIE import *
 import pickle
+import hashlib
 
 garbage = []
 
@@ -21,7 +22,8 @@ class Handler:
         self.allowed_methods = {
             '<CLOSE-CONNECTION>': 'close_connection',
             '<REGISTRATION>': 'registration',
-            '<LOGIN>': 'login'
+            '<LOGIN>': 'login',
+            '<SEND-MESSAGE>': 'send_message'
                                 }
 
     # function for tests
@@ -33,7 +35,7 @@ class Handler:
         return self.__request
 
     # calling method to run it
-    def call_method(self, data: list, addr: tuple):
+    def call_method(self, data: list, addr: tuple) -> str:
         method = data[0]
         data = data[-1]
         print(f'Starting method: [{method}]')
@@ -54,10 +56,12 @@ class Handler:
             items[key] = value
         items['ip'] = addr[0]
         del items['id']
+        password = hashlib.sha512(items.get('password').encode('utf-8'))
         static_status = check_all_for_reg(login=items.get('login'), password=items.get('password'),
                                           email=items.get('email'), db=self.database)
         if static_status != '<SUCCESS>':
             return static_status
+        items['password'] = password.hexdigest()
         print(f"({addr[0]}:{addr[1]}): {self.database.insert(name='user', subject_values=items)}")
         print(f'<SUCCESS> New user added to database')
         return '<SUCCESS>'
@@ -71,3 +75,8 @@ class Handler:
             return 'Неправильный пароль'
         print(f'<SUCCESS> User enter into account with: \nlogin[{data.get("login")}] - id[{data.get("id")}]')
         return '<SUCCESS>'
+
+    def send_message(self, data, addr):
+        self.garbage = True
+        return [f'{addr}: {data}', '<SEND-MESSAGE>']
+

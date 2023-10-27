@@ -7,6 +7,7 @@ from request_handler import *
 from dataparser import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+threads = {}
 
 # func to run main code
 def run_server():
@@ -52,7 +53,7 @@ class Server:
 
         self.__conn, self.__addr = self.__server.accept()
         thr = Connection(self.__conn, self.__addr)
-        self._threads[self.__addr] = thr
+        threads[self.__addr] = [thr, self.__addr, self.__conn]
         thr.start()
 
 
@@ -62,6 +63,7 @@ class Connection(threading.Thread):
     # creating thread and saving connection and addr data
     def __init__(self, conn, addr):
         threading.Thread.__init__(self, name=addr[0])
+        self.garbage = None
 
         self.__conn = conn
         self.__addr = addr
@@ -80,12 +82,15 @@ class Connection(threading.Thread):
                     data = self.__conn.recv(1024)
                     try:
                         data = parser(data)
-                    except IndexError:
+                    except Exception as error_static:
+                        garbage.append(error_static)
                         continue
                     print(f'{time_now()}: {self.__addr} -> {data[0]}')
                     status = self.handler.call_method(data, addr=self.__addr)
                     if status == '<CLOSE-CONNECTION>':
                         break
+                    if status[-1] == '<SEND-MESSAGE>':
+                        self.send_to_all(status[0])
                     print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
                     self.send(status)
             except ConnectionResetError:
@@ -98,6 +103,15 @@ class Connection(threading.Thread):
     # sends data to clients
     def send(self, data):
         self.__conn.send(pencode(data))
+
+    def send_to_all(self, data):
+        for el in threads.values():
+            try:
+                el[-1].send(b'<NOTIFICATION-MESSAGE>')
+                el[-1].send(pencode(data) + b'<END>' + pencode('test') + b'<END>')
+            except ConnectionAbortedError:
+                continue
+        self.garbage = True
 
 
 if __name__ == '__main__':
