@@ -54,3 +54,12 @@ class Handler:
         print(f"({addr[0]}:{addr[1]}): {self.database.insert(name='user', subject_values=items)}")
         print(f'<SUCCESS> New user added to database')
         return '<SUCCESS>'
+
+    def login(self, data, addr):
+        user_data = find_login(data.get('login'), self.database)
+        if user_data == '<DENIED>' or user_data == ():
+            return 'Такого логина не существует'
+        if data.get('password') != user_data.get('password'):
+            return 'Неправильный пароль'
+        print(f'<SUCCESS> User enter into account with: \nlogin[{data.get("login")}] - id[{data.get("id")}]')
+        return '<SUCCESS>'

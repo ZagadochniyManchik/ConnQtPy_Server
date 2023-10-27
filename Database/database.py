@@ -84,7 +84,7 @@ class Database:
             raise ValueError('(RequestError): ' + str(error_data))
 
     # reading data from table of current database
-    def select(self, table_name: str = 'None', id: str = 'None', subject: str = '*') -> str:
+    def select(self, table_name: str = 'None', id: str = 'None', subject: str = '*', criterion: str = 'id') -> str:
         if table_name == 'None':
             raise ValueError(f'Table not specified in module "{self}.select"')
 
@@ -92,7 +92,7 @@ class Database:
             self.connection_proc(f"SELECT {subject} FROM `{table_name}`")
             return self.cursor.fetchall()
 
-        self.connection_proc(f"SELECT {subject} FROM `{table_name}` WHERE id = '{id}'")
+        self.connection_proc(f"SELECT {subject} FROM `{table_name}` WHERE {criterion} = '{id}'")
         return self.cursor.fetchall()
 
     # updating data from table of current database

@@ -1,3 +1,4 @@
+garbage = []
 
 
 # check all data for registration
@@ -59,4 +60,13 @@ def check_email(email: str) -> str:
     if cnt > 1:
         return 'Некорректный ввод эл.почты!'
     return '<SUCCESS>'
+
+
+def find_login(login: str, db) -> str:
+    try:
+        return db.select(table_name='user', id=login, criterion='login')[0]
+    except Exception as error:
+        garbage.append(error)
+        return '<DENIED>'
+
 
