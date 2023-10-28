@@ -2,12 +2,14 @@ import socket
 # import os
 import threading
 import decoder
+import psutil
 from server_config import *
 from request_handler import *
 from dataparser import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 threads = {}
+
 
 # func to run main code
 def run_server():
@@ -37,6 +39,10 @@ class Server:
 
         self._connections = {}
         self._threads = {}
+
+        self._db = Database()
+        self._db.connect()
+        print(self._db.update(table_name='user', subject='online', subject_value='False'))
 
     # bind server to host and port
     def bind(self) -> None:
@@ -69,7 +75,7 @@ class Connection(threading.Thread):
         self.__addr = addr
 
         print(f'\nConnection with {self.__addr} open\n')
-        self.handler = Handler()
+        self.handler = Handler(conn, addr)
 
     # Running function after creating object of class
     def run(self):
@@ -79,7 +85,11 @@ class Connection(threading.Thread):
         try:
             try:
                 while True:
-                    data = self.__conn.recv(1024)
+                    print(f'Waiting for data from {self.__addr}')
+                    try:
+                        data = self.__conn.recv(1024)
+                    except ConnectionAbortedError:
+                        continue
                     try:
                         data = parser(data)
                     except Exception as error_static:
@@ -89,11 +99,10 @@ class Connection(threading.Thread):
                     status = self.handler.call_method(data, addr=self.__addr)
                     if status == '<CLOSE-CONNECTION>':
                         break
-                    if status[-1] == '<SEND-MESSAGE>':
-                        self.send_to_all(status[0])
                     print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
                     self.send(status)
             except ConnectionResetError:
+                self.handler.offline({})
                 print(f'Connection with {self.__addr} closed with ConnectionResetError')
         except ValueError as error_arg:
             print(f'Connection with {self.__addr} closed with Error:\n{error_arg}')
@@ -103,15 +112,6 @@ class Connection(threading.Thread):
     # sends data to clients
     def send(self, data):
         self.__conn.send(pencode(data))
-
-    def send_to_all(self, data):
-        for el in threads.values():
-            try:
-                el[-1].send(b'<NOTIFICATION-MESSAGE>')
-                el[-1].send(pencode(data) + b'<END>' + pencode('test') + b'<END>')
-            except ConnectionAbortedError:
-                continue
-        self.garbage = True
 
 
 if __name__ == '__main__':

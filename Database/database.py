@@ -1,17 +1,8 @@
 import pymysql
 import time
-# import asyncio
-# import logging
-
-db_host = '127.0.0.1'
-db_port = 3306
-db_user = 'mysql'
-db_password = 'mysql'
-db_charset = 'utf8mb4'
-db_user_database = 'userdatabase'
-db_table_elements = {
-    'user': ['id', 'ip', 'login', 'password', 'email', 'gender']
-}
+import logging
+from Server.Database.User import *
+from Server.Database.database_config import *
 
 
 # Function for return time of this moment
@@ -96,7 +87,8 @@ class Database:
         return self.cursor.fetchall()
 
     # updating data from table of current database
-    def update(self, table_name: str = 'None', id: str = 'None', subject: str = None, subject_value: str = None) -> str:
+    def update(self, table_name: str = 'user', id: str = 'None', subject: str = None, subject_value: str = None,
+               criterion: str = 'id') -> str:
         if table_name == 'None':
             raise ValueError(f'Table not specified in module "{self}.update"')
 
@@ -104,13 +96,13 @@ class Database:
             raise ValueError(f'Update func doesnt get any type of data to update in module "{self}.update"')
 
         if id == 'None':
-            self.connection_proc(f"UPDATE `{table_name}` SET {subject} = {subject_value}")
+            self.connection_proc(f"UPDATE `{table_name}` SET {subject} = '{subject_value}'")
             self._connection.commit()
             return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for all IDs'
 
-        self.connection_proc(f"UPDATE `{table_name}` SET `{subject}` = '{subject_value}' WHERE `id` = '{id}'")
+        self.connection_proc(f"UPDATE `{table_name}` SET `{subject}` = '{subject_value}' WHERE `{criterion}` = '{id}'")
         self._connection.commit()
-        return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for ID[{id}]'
+        return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for {criterion}[{id}]'
 
     # create database or table
     def create(self, status: str = 'table', name: str = 'example', table_args: set[str] = None) -> str:
@@ -158,18 +150,17 @@ class Database:
         return f"{time_now()} -> Inserted data in table {name}"
 
     # delete data from db
-    def delete(self, table_name: str = None, id: str = None) -> str:
+    def delete(self, table_name: str = None, id: str = None, criterion: str = 'id') -> str:
         if table_name is None or id is None:
             raise ValueError(f"Not enough data for module {self}.delete")
 
         self.connection_proc(f"DELETE FROM `{table_name}` WHERE id = '{id}'")
         self._connection.commit()
-        return f"{time_now()} -> Deleted data from table:`{table_name}` where id:'{id}'"
+        return f"{time_now()} -> Deleted data from table:`{table_name}` where {criterion}:'{id}'"
 
 
 # main
 if __name__ == '__main__':
-    from database_config import *
     print(f"\nMain TestCase\n{'-'*60}")
     db = Database()
     print(f"Database live status is {db.is_alive}")
@@ -187,6 +178,8 @@ if __name__ == '__main__':
     #     'email': 'testemail2021@gmail.ru'
     # }))
     # print(db.delete(table_name='user', id='516782'))
+    print(db.update(table_name='user', id='15', subject='online', subject_value='False'))
+    print(db.update(table_name='user', id='16', subject='online', subject_value='False'))
     print(f"{'-'*60}")
     db_code_status = 'successful'
     print(db_code_status)

@@ -8,6 +8,7 @@ class User:
         self.password = None
         self.email = None
         self.gender = None
+        self.online = 'False'
 
     def set_items(self, items):
         if len(self.__dict__.items()) != len(items.items()):
@@ -17,7 +18,7 @@ class User:
 
 if __name__ == '__main__':
     ...
-    #user = User()
-    #print(user.__dict__)
-    #user.set_items({'login': 'Ivankov', 'password': 'iva123456', 'gender': 'Male', 'email': 'ivachan@gmail.com'})
-    #print(user.__dict__)
+    # user = User()
+    # print(user.__dict__)
+    # user.set_items({'login': 'Ivankov', 'password': 'iva123456', 'gender': 'Male', 'email': 'ivachan@gmail.com'})
+    # print(user.__dict__)
