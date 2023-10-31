@@ -167,7 +167,7 @@ if __name__ == '__main__':
     print(db.connect())
     # print(*db.select(table_name='user'), sep='\n')
     # print(db.update(table_name='user', subject='login', subject_value="Profile9", id='83243'))
-    print(*db.select(table_name='user', subject='login'), sep='\n')
+    print(db.select(table_name='user', criterion='login', id='HashFunction')[0])
     # print(db.create())
     # print(db.create(status='database', name='dbexample'))
     # print(db.insert(subject_values={

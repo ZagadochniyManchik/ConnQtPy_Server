@@ -1,4 +1,5 @@
 garbage = []
+# Check For Incorrect Entry's
 
 
 # check all data for registration

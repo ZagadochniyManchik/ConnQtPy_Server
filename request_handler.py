@@ -25,7 +25,8 @@ class Handler:
             '<LOGIN>': 'login',
             '<SEND-MESSAGE>': 'send_message',
             '<ONLINE>': 'online',
-            '<OFFLINE>': 'offline'
+            '<OFFLINE>': 'offline',
+            '<SEND-USER-DATA>': 'send_user_data'
             }
 
         self.connections = {}
@@ -103,3 +104,7 @@ class Handler:
         ))
         return '<SUCCESS>'
 
+    def send_user_data(self, data):
+        user_data = self.database.select(table_name='user', criterion='login', id=data.get('login'))[0]
+        self.conn.send(pencode(user_data))
+        return '<SUCCESS>'
