@@ -100,6 +100,7 @@ class Database:
             self._connection.commit()
             return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for all IDs'
 
+        print(f"UPDATE `{table_name}` SET `{subject}` = {subject_value} WHERE `{criterion}` = '{id}'")
         self.connection_proc(f"UPDATE `{table_name}` SET `{subject}` = '{subject_value}' WHERE `{criterion}` = '{id}'")
         self._connection.commit()
         return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for {criterion}[{id}]'
@@ -132,13 +133,7 @@ class Database:
             pass
 
         if subject_values is None:
-            subject_values = {
-                'ip': '192.168.0.0',
-                'login': 'Ivankov',
-                'password': 'iva123',
-                'email': 'testemail2023@gmail.com',
-                'gender': 'Не указано'
-            }
+            raise ValueError("Subject values must be dict, not NoneType object")
 
         if len(subject_values) != len(table_elements):
             raise ValueError("Not enough values to make INSERT func")
@@ -161,13 +156,31 @@ class Database:
 
 # main
 if __name__ == '__main__':
+    from Server.decoder import *
     print(f"\nMain TestCase\n{'-'*60}")
     db = Database()
     print(f"Database live status is {db.is_alive}")
     print(db.connect())
     # print(*db.select(table_name='user'), sep='\n')
     # print(db.update(table_name='user', subject='login', subject_value="Profile9", id='83243'))
-    print(db.select(table_name='user', criterion='login', id='HashFunction')[0])
+    profile_posts = str(pencode('Lorum ipsum'))
+    test = {
+        'ip': '127.0.0.1:25565',
+        'login': 'TestFunction',
+        'password': 'password123',
+        'email': 'testemail@gmail.com',
+        'gender': 'Не указано',
+        'online': 'False',
+        'profile_name': 'None',
+        'profile_status': 'None',
+        'profile_posts': 'Lorum ipsum'
+    }
+    print(db.select(table_name='user', id='27')[0])
+    print(db.delete(table_name='user', criterion='login', id='TestFunction'))
+    # print(db.insert('user', test))
+    # print(db.update(table_name='user', id='TestFunction', criterion='login',
+    #                 subject='profile_posts', subject_value=profile_posts
+    #                 ))
     # print(db.create())
     # print(db.create(status='database', name='dbexample'))
     # print(db.insert(subject_values={
@@ -178,8 +191,8 @@ if __name__ == '__main__':
     #     'email': 'testemail2021@gmail.ru'
     # }))
     # print(db.delete(table_name='user', id='516782'))
-    print(db.update(table_name='user', id='15', subject='online', subject_value='False'))
-    print(db.update(table_name='user', id='16', subject='online', subject_value='False'))
+    # print(db.update(table_name='user', id='15', subject='online', subject_value='False'))
+    # print(db.update(table_name='user', id='16', subject='online', subject_value='False'))
     print(f"{'-'*60}")
     db_code_status = 'successful'
     print(db_code_status)

@@ -102,7 +102,10 @@ class Connection(threading.Thread):
                     print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
                     self.send(status)
             except ConnectionResetError:
-                self.handler.offline({})
+                try:
+                    self.handler.offline({})
+                except AttributeError:
+                    pass
                 print(f'Connection with {self.__addr} closed with ConnectionResetError')
         except ValueError as error_arg:
             print(f'Connection with {self.__addr} closed with Error:\n{error_arg}')

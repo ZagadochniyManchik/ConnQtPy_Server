@@ -12,3 +12,6 @@ db_table_elements = {
     'user': [el for el in elements.__dict__.keys()]
 }
 # end
+
+if __name__ == '__main__':
+    print(*db_table_elements.items(), sep='\n')

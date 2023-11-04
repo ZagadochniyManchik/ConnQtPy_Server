@@ -26,7 +26,11 @@ class Handler:
             '<SEND-MESSAGE>': 'send_message',
             '<ONLINE>': 'online',
             '<OFFLINE>': 'offline',
-            '<SEND-USER-DATA>': 'send_user_data'
+            '<SEND-USER-DATA>': 'send_user_data',
+            '<SEND-USER-SOCIAL>': 'send_user_social',
+            '<SAVE-USER-DATA>': 'save_user_data',
+            '<CHANGE-LOGIN>': 'change_login',
+            '<CHANGE-PASSWORD>': 'change_password'
             }
 
         self.connections = {}
@@ -53,7 +57,7 @@ class Handler:
 
     # method that close connection with client
     def close_connection(self, data) -> str:
-        self.garbage = '\npython_is_trash\n'
+        self.garbage = f'\n{data}\n'
         return '<CLOSE-CONNECTION>'
 
     # method registration that adds new checked user data into database
@@ -61,6 +65,8 @@ class Handler:
         user_account = User()
         items = user_account.__dict__
         for key, value in data.items():
+            if key not in items.keys():
+                continue
             items[key] = value
         items['ip'] = f'{self.addr[0]}:{self.addr[1]}'
         del items['id']
@@ -71,6 +77,10 @@ class Handler:
             return static_status
         items['password'] = password.hexdigest()
         print(f"({self.addr[0]}:{self.addr[1]}): {self.database.insert(name='user', subject_values=items)}")
+        user_social = Social()
+        items = user_social.__dict__
+        items['id'] = data.get('id')
+        print(f"({self.addr[0]}:{self.addr[1]}): {self.database.insert(name='social', subject_values=items)}")
         print(f'<SUCCESS> New user added to database')
         return '<SUCCESS>'
 
@@ -104,7 +114,47 @@ class Handler:
         ))
         return '<SUCCESS>'
 
+    def send_data(self, data, status):
+        self.connections.get(self.addr).get('conn').send(b'<NOTIFICATION-MESSAGE>')
+        self.connections.get(self.addr).get('conn').send(pencode(data) + b'<END>' + pencode(status) + b'<END>')
+
     def send_user_data(self, data):
         user_data = self.database.select(table_name='user', criterion='login', id=data.get('login'))[0]
-        self.conn.send(pencode(user_data))
+        self.send_data(user_data, '<SET-USER-DATA>')
+        return '<SUCCESS>'
+
+    def send_user_social(self, data):
+        user_social = self.database.select(table_name='social', id=data.get('id'))[0]
+        self.send_data(user_social, '<SET-USER-SOCIAL>')
+        return 'SUCCESS'
+
+    def save_user_data(self, data) -> str:
+        for key, value in data.items():
+            self.database.update(
+                table_name='user', id=data.get('id'),
+                subject=key, subject_value=value
+            )
+        return '<SUCCESS>'
+
+    def change_login(self, data):
+        login = data.get('login')
+        static_status = check_login(login, self.database)
+        if static_status != '<SUCCESS>':
+            self.send_data(static_status, '<SET-REQUEST-STATUS>')
+            return '<DENIED>'
+        self.connections.get(self.addr)['login'] = login
+        time.sleep(0.1)
+        self.send_data(self.save_user_data(data), '<SET-REQUEST-STATUS>')
+        return '<SUCCESS>'
+
+    def change_password(self, data):
+        password = data.get('password')
+        static_status = check_password(password)
+        if static_status != '<SUCCESS>':
+            self.send_data(static_status, '<SET-REQUEST-STATUS>')
+            return '<DENIED>'
+        password = hashlib.sha512(password.encode())
+        data['password'] = password.hexdigest()
+        time.sleep(0.1)
+        self.send_data(self.save_user_data(data), '<SET-REQUEST-STATUS>')
         return '<SUCCESS>'

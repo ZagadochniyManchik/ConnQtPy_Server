@@ -45,7 +45,7 @@ def check_password(password: str) -> str:
         if el.lower() in [i for i in 'qwertyuiopasdfghjklzxcvbnm01234567890!@#$%&*()/']:
             continue
         else:
-            return 'Логин должен состоять из символов A-Z и 0-9 и !@#$%&*()/'
+            return 'Пароль должен состоять из символов A-Z и 0-9 и !@#$%&*()/'
     return '<SUCCESS>'
 
 
