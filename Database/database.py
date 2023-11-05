@@ -100,7 +100,6 @@ class Database:
             self._connection.commit()
             return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for all IDs'
 
-        print(f"UPDATE `{table_name}` SET `{subject}` = {subject_value} WHERE `{criterion}` = '{id}'")
         self.connection_proc(f"UPDATE `{table_name}` SET `{subject}` = '{subject_value}' WHERE `{criterion}` = '{id}'")
         self._connection.commit()
         return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "{subject_value}"] for {criterion}[{id}]'
@@ -175,8 +174,8 @@ if __name__ == '__main__':
         'profile_status': 'None',
         'profile_posts': 'Lorum ipsum'
     }
-    print(db.select(table_name='user', id='27')[0])
-    print(db.delete(table_name='user', criterion='login', id='TestFunction'))
+    print(db.select(table_name='user', id='17', subject='status')[0].get('status'))
+    # print(db.delete(table_name='user', criterion='login', id='TestFunction'))
     # print(db.insert('user', test))
     # print(db.update(table_name='user', id='TestFunction', criterion='login',
     #                 subject='profile_posts', subject_value=profile_posts

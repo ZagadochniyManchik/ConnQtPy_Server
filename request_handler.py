@@ -28,9 +28,11 @@ class Handler:
             '<OFFLINE>': 'offline',
             '<SEND-USER-DATA>': 'send_user_data',
             '<SEND-USER-SOCIAL>': 'send_user_social',
+            '<SEND-FRIEND-DATA>': 'send_friend_data',
             '<SAVE-USER-DATA>': 'save_user_data',
             '<CHANGE-LOGIN>': 'change_login',
-            '<CHANGE-PASSWORD>': 'change_password'
+            '<CHANGE-PASSWORD>': 'change_password',
+            '<CALL-CLIENT-METHOD>': 'call_client_method'
             }
 
         self.connections = {}
@@ -114,9 +116,13 @@ class Handler:
         ))
         return '<SUCCESS>'
 
-    def send_data(self, data, status):
-        self.connections.get(self.addr).get('conn').send(b'<NOTIFICATION-MESSAGE>')
-        self.connections.get(self.addr).get('conn').send(pencode(data) + b'<END>' + pencode(status) + b'<END>')
+    def send_data(self, data, status, NF=True) -> None:
+        if NF:
+            self.connections.get(self.addr).get('conn').send(b'<NOTIFICATION-MESSAGE>')
+        if status == 'None':
+            self.connections.get(self.addr).get('conn').send(pencode(data))
+        else:
+            self.connections.get(self.addr).get('conn').send(pencode(data) + b'<END>' + pencode(status) + b'<END>')
 
     def send_user_data(self, data):
         user_data = self.database.select(table_name='user', criterion='login', id=data.get('login'))[0]
@@ -126,7 +132,7 @@ class Handler:
     def send_user_social(self, data):
         user_social = self.database.select(table_name='social', id=data.get('id'))[0]
         self.send_data(user_social, '<SET-USER-SOCIAL>')
-        return 'SUCCESS'
+        return '<SUCCESS>'
 
     def save_user_data(self, data) -> str:
         for key, value in data.items():
@@ -158,3 +164,18 @@ class Handler:
         time.sleep(0.1)
         self.send_data(self.save_user_data(data), '<SET-REQUEST-STATUS>')
         return '<SUCCESS>'
+
+    def send_friend_data(self, data):
+        friend_login = data.get('login')
+        needed_data = ['login', 'id', 'online', 'status', 'name', 'gender']
+        friend_data = {}
+        for nd in needed_data:
+            friend_data[nd] = self.database.select(
+                table_name='user', criterion='login',
+                id=friend_login, subject=nd)[0].get(nd)
+        self.send_data(friend_data, status='None', NF=False)
+        return '<COMPLETE>'
+
+    def call_client_method(self, data):
+        self.send_data({'None': 'None'}, data.get('method'))
+        return '<COMPLETE>'

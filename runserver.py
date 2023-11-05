@@ -100,6 +100,8 @@ class Connection(threading.Thread):
                     if status == '<CLOSE-CONNECTION>':
                         break
                     print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
+                    if status == '<COMPLETE>':
+                        continue
                     self.send(status)
             except ConnectionResetError:
                 try:
