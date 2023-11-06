@@ -1,4 +1,7 @@
 import pymysql
+from PIL import Image
+import base64
+import PIL.Image
 import time
 import logging
 from Server.Database.User import *
@@ -64,13 +67,12 @@ class Database:
         except Exception as error_data:
             raise ConnectionError(f'{error_data}')
 
-    # Executing MySQL code in Server PHPMyAdmin
-    def connection_proc(self, process):
+    # Executing MySQL code in DbServer
+    def connection_proc(self, process) -> None:
         try:
             with self._connection.cursor() as self.cursor:
                 conn_process = process
                 self.cursor.execute(conn_process)
-
         except Exception as error_data:
             raise ValueError('(RequestError): ' + str(error_data))
 
@@ -87,13 +89,23 @@ class Database:
         return self.cursor.fetchall()
 
     # updating data from table of current database
-    def update(self, table_name: str = 'user', id: str = 'None', subject: str = None, subject_value: str = None,
+    def update(self, table_name: str = 'user', id: str = 'None', subject: str = None, subject_value=None,
                criterion: str = 'id') -> str:
         if table_name == 'None':
             raise ValueError(f'Table not specified in module "{self}.update"')
 
         if subject_value is None or subject is None:
             raise ValueError(f'Update func doesnt get any type of data to update in module "{self}.update"')
+
+        if table_name == 'images':
+            if id == 'None':
+                raise ValueError(f'ID is required to make UPDATE in images table')
+            with self._connection.cursor() as self.cursor:
+                conn_process = f"UPDATE `{table_name}` SET {subject} = %s WHERE `{criterion}` = '{id}'"
+                arguments = (subject_value,)
+                self.cursor.execute(conn_process, arguments)
+            self._connection.commit()
+            return f'{time_now()} -> Updated data in `{table_name}`["{subject}" = "image"] for {criterion}[{id}]'
 
         if id == 'None':
             self.connection_proc(f"UPDATE `{table_name}` SET {subject} = '{subject_value}'")
@@ -127,7 +139,8 @@ class Database:
     def insert(self, name: str = 'user', subject_values=None) -> str:
         table_elements = db_table_elements.get(name)
         try:
-            table_elements.remove('id')
+            if name == 'user':
+                table_elements.remove('id')
         except ValueError:
             pass
 
@@ -137,7 +150,7 @@ class Database:
         if len(subject_values) != len(table_elements):
             raise ValueError("Not enough values to make INSERT func")
 
-        request = map(lambda x: "'"+x+"'", subject_values.values())
+        request = map(lambda x: "'"+str(x)+"'", subject_values.values())
         self.connection_proc(f"INSERT INTO `{name}` ({', '.join(table_elements)}) "
                              f"VALUES ({', '.join(list(request))});")
         self._connection.commit()
@@ -151,6 +164,9 @@ class Database:
         self.connection_proc(f"DELETE FROM `{table_name}` WHERE id = '{id}'")
         self._connection.commit()
         return f"{time_now()} -> Deleted data from table:`{table_name}` where {criterion}:'{id}'"
+
+    def get_connection(self):
+        return self._connection
 
 
 # main
@@ -174,7 +190,18 @@ if __name__ == '__main__':
         'profile_status': 'None',
         'profile_posts': 'Lorum ipsum'
     }
-    print(db.select(table_name='user', id='17', subject='status')[0].get('status'))
+    print(db.select(table_name='user', id='17')[0])
+
+    with open("D:\\PythonFiles\\Rannev_Python\\ConnQtPy\\ConnPyQtRU\\images\\pfp_image_standard.png", 'rb') as file:
+        file_bytes = file.read()
+    image = Image.open("D:\\PythonFiles\\Rannev_Python\\ConnQtPy\\ConnPyQtRU\\images\\pfp_image_standard.png")
+    print(db.update(table_name='images', id='17', subject='pfp', subject_value=file_bytes))
+    print(db.select(table_name='images', id='17')[0].get('pfp'))
+    # request = "UPDATE images SET pfp = %s WHERE id = 16"
+    # args = (file_bytes, )
+    # cursor = db.get_connection().cursor()
+    # cursor.execute(request, args)
+    # db.get_connection().commit()
     # print(db.delete(table_name='user', criterion='login', id='TestFunction'))
     # print(db.insert('user', test))
     # print(db.update(table_name='user', id='TestFunction', criterion='login',

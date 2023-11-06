@@ -8,8 +8,10 @@ db_password = 'mysql'
 db_charset = 'utf8mb4'
 db_user_database = 'userdatabase'
 elements = User()
+social_elements = Social()
 db_table_elements = {
-    'user': [el for el in elements.__dict__.keys()]
+    'user': [el for el in elements.__dict__.keys()],
+    'social': [el for el in social_elements.__dict__.keys()]
 }
 # end
 

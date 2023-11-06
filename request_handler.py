@@ -67,10 +67,8 @@ class Handler:
         user_account = User()
         items = user_account.__dict__
         for key, value in data.items():
-            if key not in items.keys():
-                continue
             items[key] = value
-        items['ip'] = f'{self.addr[0]}:{self.addr[1]}'
+        items['ip'] = f'{self.addr[0]}'
         del items['id']
         password = hashlib.sha512(items.get('password').encode('utf-8'))
         static_status = check_all_for_reg(login=items.get('login'), password=items.get('password'),
@@ -79,9 +77,11 @@ class Handler:
             return static_status
         items['password'] = password.hexdigest()
         print(f"({self.addr[0]}:{self.addr[1]}): {self.database.insert(name='user', subject_values=items)}")
+        user_data = items
         user_social = Social()
         items = user_social.__dict__
-        items['id'] = data.get('id')
+        items['id'] = self.database.select(table_name='user', criterion='login',
+                                           id=user_data.get('login'), subject='id')[0].get('id')
         print(f"({self.addr[0]}:{self.addr[1]}): {self.database.insert(name='social', subject_values=items)}")
         print(f'<SUCCESS> New user added to database')
         return '<SUCCESS>'
@@ -179,3 +179,7 @@ class Handler:
     def call_client_method(self, data):
         self.send_data({'None': 'None'}, data.get('method'))
         return '<COMPLETE>'
+    #
+    # def send_image(self, data):
+    #     image_bytes = data.get('image')
+    #     self.send_data({'image': data.get("image_name")}, '<GET-IMAGE>')
