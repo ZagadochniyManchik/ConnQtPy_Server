@@ -11,7 +11,8 @@ elements = User()
 social_elements = Social()
 db_table_elements = {
     'user': [el for el in elements.__dict__.keys()],
-    'social': [el for el in social_elements.__dict__.keys()]
+    'social': [el for el in social_elements.__dict__.keys()],
+    'images': ['id', 'pfp']
 }
 # end
 

@@ -192,11 +192,11 @@ if __name__ == '__main__':
     }
     print(db.select(table_name='user', id='17')[0])
 
-    with open("D:\\PythonFiles\\Rannev_Python\\ConnQtPy\\ConnPyQtRU\\images\\pfp_image_standard.png", 'rb') as file:
+    with open("D:\\All unusual files\\text\\9INhqNRcWqR4Ka_dk5YQHsL_PWj57WzTeUNWDfV-ynpX42MuBq7_VRZBzOv6hxAlfYZOmn4GFkLMCivyPm8XFW3Q.jpg", 'rb') as file:
         file_bytes = file.read()
-    image = Image.open("D:\\PythonFiles\\Rannev_Python\\ConnQtPy\\ConnPyQtRU\\images\\pfp_image_standard.png")
-    print(db.update(table_name='images', id='17', subject='pfp', subject_value=file_bytes))
-    print(db.select(table_name='images', id='17')[0].get('pfp'))
+    # image = Image.open("D:\\PythonFiles\\Rannev_Python\\ConnQtPy\\ConnPyQtRU\\images\\pfp_image_standard.png")
+    # print(db.update(table_name='images', id='15', subject='pfp', subject_value=file_bytes))
+    print(db.select(table_name='social', id='16')[0])
     # request = "UPDATE images SET pfp = %s WHERE id = 16"
     # args = (file_bytes, )
     # cursor = db.get_connection().cursor()

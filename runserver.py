@@ -68,7 +68,7 @@ class Connection(threading.Thread):
 
     # creating thread and saving connection and addr data
     def __init__(self, conn, addr):
-        threading.Thread.__init__(self, name=addr[0])
+        threading.Thread.__init__(self, name=addr)
         self.garbage = None
 
         self.__conn = conn
@@ -90,19 +90,23 @@ class Connection(threading.Thread):
                         data = self.__conn.recv(1024)
                     except ConnectionAbortedError:
                         continue
+
                     try:
                         data = parser(data)
                     except Exception as error_static:
                         garbage.append(error_static)
                         continue
+
                     print(f'{time_now()}: {self.__addr} -> {data[0]}')
                     status = self.handler.call_method(data, addr=self.__addr)
                     if status == '<CLOSE-CONNECTION>':
                         break
+
                     print(f'{data[0]} for addr[{self.__addr}]:\n{status}')
                     if status == '<COMPLETE>':
                         continue
                     self.send(status)
+
             except ConnectionResetError:
                 try:
                     self.handler.offline({})
